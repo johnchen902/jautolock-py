@@ -16,5 +16,5 @@ setup(
     author_email = "johnchen902@gmail.com",
     description = "Fire up program in case of user inactivity",
     license = "GPL3",
-    url = "https://github.com/johnchen902/jautolock-py",
+    url = "https://github.com/johnchen902/python-jautolock",
 )

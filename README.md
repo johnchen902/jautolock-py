@@ -1,4 +1,4 @@
-# jautolock-py
+# python-jautolock
 
 ## Description
 
