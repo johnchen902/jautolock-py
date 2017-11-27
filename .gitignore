@@ -1,0 +1,4 @@
+build/
+dist/
+jautolock.egg-info/
+__pycache__/
