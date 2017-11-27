@@ -212,7 +212,7 @@ def start(args):
 def main():
     """Parse argv and act accordingly"""
     parser = argparse.ArgumentParser(
-        description="Automatic X screen-locker/screen-saver")
+        description="Fire up program in case of user inactivity.")
     subparsers = parser.add_subparsers(dest='action')
     parser_start = subparsers.add_parser('start', help='start daemon')
     parser_start.add_argument(

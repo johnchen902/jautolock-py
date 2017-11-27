@@ -13,7 +13,7 @@ setup(
 
     author = "John Chen",
     author_email = "johnchen902@gmail.com",
-    description = "Automatic X screen-locker/screen-saver",
+    description = "Fire up program in case of user inactivity",
     license = "AGPL",
     url = "https://github.com/johnchen902/jautolock-py",
 )
