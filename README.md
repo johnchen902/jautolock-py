@@ -24,12 +24,14 @@ jautolock start -t notify,50s,'notify-send jautolock "10 seconds before locking"
 Supported time units are h (hours), m (minutes) and s (seconds).
 
 Like xautolock, jautolock can communicate with an already running instance.
-For now, you must manually connect to `$XDG_RUNTIME_DIR/jautolock.socket`.
 Currently these messages are understood:
 
 + `now <taskname>`: Fire all tasks with the specified name.
 + `busy`: Assume the user is always active.
 + `unbusy`: Don't keep assuming the user is always active.
+
+See `jautolock --help` for detail.
+Instead, you can manually connect to `$XDG_RUNTIME_DIR/jautolock.socket`.
 
 ## Timing
 

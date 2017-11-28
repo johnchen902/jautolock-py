@@ -5,6 +5,7 @@ import asyncio
 import datetime
 import os.path
 import re
+import sys
 import jautolock.xidle as xidle
 import xdg.BaseDirectory
 
@@ -189,8 +190,6 @@ class CommandHandler:
                 await writer.drain()
         except Exception as exc:
             writer.write(repr(exc).encode() + b'\n')
-        else:
-            writer.write(b'Bye!\n')
         finally:
             writer.close()
 
@@ -198,16 +197,34 @@ class CommandHandler:
         """Start an unix server at path"""
         await asyncio.start_unix_server(self.handle_connection, path)
 
+def get_socket_path():
+    """Get user command socket path"""
+    return os.path.join(xdg.BaseDirectory.get_runtime_dir(strict=False),
+                        'jautolock.socket')
+
 def start(args):
     """The start action"""
-    path = os.path.join(xdg.BaseDirectory.get_runtime_dir(strict=False),
-                        'jautolock.socket')
+    path = get_socket_path()
     daemon = Daemon(args.tasks)
     cmd_handler = CommandHandler(daemon)
 
     asyncio.ensure_future(daemon.main_loop())
     asyncio.ensure_future(cmd_handler.start_unix_server(path))
     asyncio.get_event_loop().run_forever()
+
+async def send_message_coro(message):
+    """The corotine function sending message to user command socket."""
+    path = get_socket_path()
+    reader, writer = await asyncio.open_unix_connection(path)
+    writer.write(message + b'\n')
+    writer.write_eof()
+    return await reader.read()
+
+def send_message(message):
+    """The sendmsg action."""
+    coro = send_message_coro(message.encode())
+    data = asyncio.get_event_loop().run_until_complete(coro)
+    print(data.decode(), end='')
 
 def main():
     """Parse argv and act accordingly"""
@@ -219,13 +236,31 @@ def main():
         '-t', '--task', required=True, action='append',
         type=parse_task, dest='tasks',
         help='add a task', metavar='NAME,TIME,COMMAND')
+    subparsers.add_parser('busy', help='assume the user is busy')
+    subparsers.add_parser('unbusy', help='stop assuming the user is busy')
+    parser_now = subparsers.add_parser('now', help='run the specified task now')
+    parser_now.add_argument('name', help='the name of the task to run')
+    parser_sendmsg = subparsers.add_parser('sendmsg', help='send message to daemon directly')
+    parser_sendmsg.add_argument('message', help='the message to send')
 
     args = parser.parse_args()
 
-    if args.action == 'start':
+    if args.action is None:
+        print('Plase specified an action', file=sys.stderr)
+        return 1
+    elif args.action == 'start':
         start(args)
+    elif args.action == 'sendmsg':
+        send_message(args.message)
+    elif args.action in ['busy', 'unbusy']:
+        send_message(args.action)
+    elif args.action == 'now':
+        if '\n' in args.name:
+            print(r"name must not contains '\n'", file=sys.stderr)
+            return 1
+        send_message(args.action + ' ' + args.name)
     else:
-        raise ValueError('Unknown action %r' % args.action)
+        assert False, 'Unknown action %r' % args.action
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
